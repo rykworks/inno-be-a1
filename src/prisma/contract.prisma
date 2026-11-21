@@ -1,21 +1,44 @@
 // use prisma-8
+enum UserStatusType {
+  @@type('pg/text@1')
 
-model User {
-  id        Int                @id @default(autoincrement())
-  email     String             @unique
-  username  String?
-  name      String?
-  posts     Post[]
-  createdAt DateTime           @default(now()) @onCreate(now())
-  updatedAt temporal.UpdatedAt
+  Pending = 'pending'
+  Active = 'active'
 }
 
-model Post {
-  id        Int                @id @default(autoincrement())
-  title     String
-  content   String?
-  author    User               @relation(fields: [authorId], references: [id])
-  authorId  Int
-  createdAt DateTime           @default(now()) @onCreate(now())
-  updatedAt temporal.UpdatedAt
+model User {
+  id Uuid @id @onCreate(uuid())
+  email  Varchar(254) @unique()
+  password_hash String 
+  status UserStatusType @default(Pending)
+
+  created_at DateTime @default(now())
+  updated_at temporal.UpdatedAt
+
+  registrationChallenge RegistrationChallenge?
+
+  @@map('users')
+}
+
+enum RegistrationChallengesType {
+  @@type('pg/text@1')
+
+  OTP = 'otp'
+  MAGIC_LINK = 'magic_link'
+}
+model RegistrationChallenge {
+  id Uuid @id @onCreate(uuid())
+  user_id Uuid @unique
+  type RegistrationChallengesType
+  secret_hash String
+  last_sent_at DateTime
+  expires_at DateTime
+  attempts Int @default(0)
+  consumed_at DateTime?
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@check(expression: sql`attempts >= 0 AND attempts <= 5`, name: "registration_challenge_attempts_range")
+
+  @@map('registration_challenges')
 }

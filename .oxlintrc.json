@@ -1,5 +1,13 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "overrides": [
+    {
+      "files": ["migrations/**/*.ts"],
+      "rules": {
+        "typescript/no-floating-promises": "off"
+      }
+    }
+  ],
   "rules": {
     "typescript/no-explicit-any": "warn",
     "typescript/no-floating-promises": "error",

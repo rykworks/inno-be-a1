@@ -4,11 +4,11 @@
   "target": "postgres",
   "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
   "roots": {
-    "Post": {
-      "model": "Post",
+    "registration_challenges": {
+      "model": "RegistrationChallenge",
       "namespace": "public"
     },
-    "User": {
+    "users": {
       "model": "User",
       "namespace": "public"
     }
@@ -16,24 +16,55 @@
   "domain": {
     "namespaces": {
       "public": {
+        "enum": {
+          "RegistrationChallengesType": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "OTP",
+                "value": "otp"
+              },
+              {
+                "name": "MAGIC_LINK",
+                "value": "magic_link"
+              }
+            ]
+          },
+          "UserStatusType": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "Pending",
+                "value": "pending"
+              },
+              {
+                "name": "Active",
+                "value": "active"
+              }
+            ]
+          }
+        },
         "models": {
-          "Post": {
+          "RegistrationChallenge": {
             "fields": {
-              "authorId": {
+              "attempts": {
                 "nullable": false,
                 "type": {
                   "codecId": "pg/int4@1",
                   "kind": "scalar"
                 }
               },
-              "content": {
+              "consumed_at": {
                 "nullable": true,
                 "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
                 }
               },
-              "createdAt": {
+              "expires_at": {
                 "nullable": false,
                 "type": {
                   "codecId": "pg/timestamptz-date@1",
@@ -46,18 +77,11 @@
               "id": {
                 "nullable": false,
                 "type": {
-                  "codecId": "pg/int4@1",
+                  "codecId": "pg/uuid@1",
                   "kind": "scalar"
                 }
               },
-              "title": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "updatedAt": {
+              "last_sent_at": {
                 "nullable": false,
                 "type": {
                   "codecId": "pg/timestamptz-date@1",
@@ -66,15 +90,46 @@
                     "precision": 3
                   }
                 }
+              },
+              "secret_hash": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "type": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "RegistrationChallengesType",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "user_id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
               }
             },
             "relations": {
-              "author": {
+              "user": {
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["authorId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "user_id"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "User",
@@ -84,32 +139,38 @@
             },
             "storage": {
               "fields": {
-                "authorId": {
-                  "column": "authorId"
+                "attempts": {
+                  "column": "attempts"
                 },
-                "content": {
-                  "column": "content"
+                "consumed_at": {
+                  "column": "consumed_at"
                 },
-                "createdAt": {
-                  "column": "createdAt"
+                "expires_at": {
+                  "column": "expires_at"
                 },
                 "id": {
                   "column": "id"
                 },
-                "title": {
-                  "column": "title"
+                "last_sent_at": {
+                  "column": "last_sent_at"
                 },
-                "updatedAt": {
-                  "column": "updatedAt"
+                "secret_hash": {
+                  "column": "secret_hash"
+                },
+                "type": {
+                  "column": "type"
+                },
+                "user_id": {
+                  "column": "user_id"
                 }
               },
               "namespaceId": "public",
-              "table": "Post"
+              "table": "registration_challenges"
             }
           },
           "User": {
             "fields": {
-              "createdAt": {
+              "created_at": {
                 "nullable": false,
                 "type": {
                   "codecId": "pg/timestamptz-date@1",
@@ -122,25 +183,41 @@
               "email": {
                 "nullable": false,
                 "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 254
+                  }
                 }
               },
               "id": {
                 "nullable": false,
                 "type": {
-                  "codecId": "pg/int4@1",
+                  "codecId": "pg/uuid@1",
                   "kind": "scalar"
                 }
               },
-              "name": {
-                "nullable": true,
+              "password_hash": {
+                "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
                 }
               },
-              "updatedAt": {
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "UserStatusType",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "updated_at": {
                 "nullable": false,
                 "type": {
                   "codecId": "pg/timestamptz-date@1",
@@ -149,32 +226,30 @@
                     "precision": 3
                   }
                 }
-              },
-              "username": {
-                "nullable": true,
-                "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
-                }
               }
             },
             "relations": {
-              "posts": {
-                "cardinality": "1:N",
+              "registrationChallenge": {
+                "cardinality": "1:1",
+                "nullable": true,
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["authorId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "user_id"
+                  ]
                 },
                 "to": {
-                  "model": "Post",
+                  "model": "RegistrationChallenge",
                   "namespace": "public"
                 }
               }
             },
             "storage": {
               "fields": {
-                "createdAt": {
-                  "column": "createdAt"
+                "created_at": {
+                  "column": "created_at"
                 },
                 "email": {
                   "column": "email"
@@ -182,18 +257,18 @@
                 "id": {
                   "column": "id"
                 },
-                "name": {
-                  "column": "name"
+                "password_hash": {
+                  "column": "password_hash"
                 },
-                "updatedAt": {
-                  "column": "updatedAt"
+                "status": {
+                  "column": "status"
                 },
-                "username": {
-                  "column": "username"
+                "updated_at": {
+                  "column": "updated_at"
                 }
               },
               "namespaceId": "public",
-              "table": "User"
+              "table": "users"
             }
           }
         }
@@ -205,86 +280,128 @@
       "public": {
         "entries": {
           "table": {
-            "Post": {
+            "registration_challenges": {
+              "checks": [
+                {
+                  "expression": "attempts >= 0 AND attempts <= 5",
+                  "name": "registration_challenge_attempts_range_d5e9f5f8",
+                  "prefix": "registration_challenge_attempts_range"
+                },
+                {
+                  "expression": "\"type\" IN ('otp', 'magic_link')",
+                  "name": "registration_challenges_type_check_0ad1a5df",
+                  "prefix": "registration_challenges_type_check"
+                }
+              ],
               "columns": {
-                "authorId": {
+                "attempts": {
                   "codecId": "pg/int4@1",
                   "dataType": "pg/int4",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
                   "nullable": false
                 },
-                "content": {
-                  "codecId": "pg/text@1",
-                  "dataType": "pg/text",
-                  "nullable": true
-                },
-                "createdAt": {
+                "consumed_at": {
                   "codecId": "pg/timestamptz-date@1",
                   "dataType": "pg/timestamptz",
-                  "default": {
-                    "expression": "now()",
-                    "kind": "function"
-                  },
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                },
+                "expires_at": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
                   "nullable": false,
                   "typeParams": {
                     "precision": 3
                   }
                 },
                 "id": {
-                  "codecId": "pg/int4@1",
-                  "dataType": "pg/int4",
-                  "default": {
-                    "expression": "autoincrement()",
-                    "kind": "function"
-                  },
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
                   "nullable": false
                 },
-                "title": {
-                  "codecId": "pg/text@1",
-                  "dataType": "pg/text",
-                  "nullable": false
-                },
-                "updatedAt": {
+                "last_sent_at": {
                   "codecId": "pg/timestamptz-date@1",
                   "dataType": "pg/timestamptz",
                   "nullable": false,
                   "typeParams": {
                     "precision": 3
                   }
+                },
+                "secret_hash": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "type": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "RegistrationChallengesType",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "user_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
                 }
               },
               "foreignKeys": [
                 {
                   "index": {
-                    "name": "Post_authorId_idx_e47547ed"
+                    "unique": [
+                      "user_id"
+                    ]
                   },
+                  "onDelete": "cascade",
                   "source": {
-                    "columns": ["authorId"],
+                    "columns": [
+                      "user_id"
+                    ],
                     "namespaceId": "public",
-                    "tableName": "Post"
+                    "tableName": "registration_challenges"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
-                    "tableName": "User"
+                    "tableName": "users"
                   }
                 }
               ],
-              "indexes": [
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
                 {
-                  "columns": ["authorId"],
-                  "name": "Post_authorId_idx_e47547ed",
-                  "prefix": "Post_authorId_idx",
-                  "unique": false
+                  "columns": [
+                    "user_id"
+                  ]
+                }
+              ]
+            },
+            "users": {
+              "checks": [
+                {
+                  "expression": "\"status\" IN ('pending', 'active')",
+                  "name": "users_status_check_67ff51aa",
+                  "prefix": "users_status_check"
                 }
               ],
-              "primaryKey": {
-                "columns": ["id"]
-              },
-              "uniques": []
-            },
-            "User": {
               "columns": {
-                "createdAt": {
+                "created_at": {
                   "codecId": "pg/timestamptz-date@1",
                   "dataType": "pg/timestamptz",
                   "default": {
@@ -297,47 +414,76 @@
                   }
                 },
                 "email": {
-                  "codecId": "pg/text@1",
-                  "dataType": "pg/text",
-                  "nullable": false
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 254
+                  }
                 },
                 "id": {
-                  "codecId": "pg/int4@1",
-                  "dataType": "pg/int4",
-                  "default": {
-                    "expression": "autoincrement()",
-                    "kind": "function"
-                  },
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
                   "nullable": false
                 },
-                "name": {
+                "password_hash": {
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
-                  "nullable": true
+                  "nullable": false
                 },
-                "updatedAt": {
+                "status": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": "pending"
+                  },
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "UserStatusType",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "updated_at": {
                   "codecId": "pg/timestamptz-date@1",
                   "dataType": "pg/timestamptz",
                   "nullable": false,
                   "typeParams": {
                     "precision": 3
                   }
-                },
-                "username": {
-                  "codecId": "pg/text@1",
-                  "dataType": "pg/text",
-                  "nullable": true
                 }
               },
               "foreignKeys": [],
               "indexes": [],
               "primaryKey": {
-                "columns": ["id"]
+                "columns": [
+                  "id"
+                ]
               },
               "uniques": [
                 {
-                  "columns": ["email"]
+                  "columns": [
+                    "email"
+                  ]
                 }
+              ]
+            }
+          },
+          "valueSet": {
+            "RegistrationChallengesType": {
+              "kind": "valueSet",
+              "values": [
+                "otp",
+                "magic_link"
+              ]
+            },
+            "UserStatusType": {
+              "kind": "valueSet",
+              "values": [
+                "pending",
+                "active"
               ]
             }
           }
@@ -346,23 +492,31 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "920a87b50729a867e21706dd0fa5c3739e273a84ed89eb2f3525633b2d6ef85c"
+    "storageHash": "9e77fb88cd2eecdb15283239cfbd910347b3dc9376c9c05c2e658497c4764b5e"
   },
   "execution": {
-    "executionHash": "0ff7f5c55037616d53a67c7c581c1178658b41c7a674a85dd59fc3b8f9dd8a49",
+    "executionHash": "1efe262e5841ed91fb0d3d0910b02b42539e8692c5ca264058cffeb0f6264db7",
     "mutations": {
       "defaults": [
         {
           "onCreate": {
-            "id": "timestampNow",
-            "kind": "generator",
-            "params": {
-              "precision": 3
-            }
+            "id": "uuidv4",
+            "kind": "generator"
           },
           "ref": {
-            "entry": "Post",
-            "field": "createdAt",
+            "entry": "registration_challenges",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "users",
+            "field": "id",
             "namespace": "public"
           }
         },
@@ -382,43 +536,8 @@
             }
           },
           "ref": {
-            "entry": "Post",
-            "field": "updatedAt",
-            "namespace": "public"
-          }
-        },
-        {
-          "onCreate": {
-            "id": "timestampNow",
-            "kind": "generator",
-            "params": {
-              "precision": 3
-            }
-          },
-          "ref": {
-            "entry": "User",
-            "field": "createdAt",
-            "namespace": "public"
-          }
-        },
-        {
-          "onCreate": {
-            "id": "timestampNow",
-            "kind": "generator",
-            "params": {
-              "precision": 3
-            }
-          },
-          "onUpdate": {
-            "id": "timestampNow",
-            "kind": "generator",
-            "params": {
-              "precision": 3
-            }
-          },
-          "ref": {
-            "entry": "User",
-            "field": "updatedAt",
+            "entry": "users",
+            "field": "updated_at",
             "namespace": "public"
           }
         }
