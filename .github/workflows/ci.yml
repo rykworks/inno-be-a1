@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [24]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup pnpm, Node.js and install dependencies
+        uses: pnpm/setup@fa36a5ef7dcdefc3a7cb25655c122e00cf6e636e
+        with:
+          version: 12
+          runtime: node@${{ matrix.node-version }}
+          cache: true
+
+      - name: Check Formatting
+        run: pnpm run format:check
+
+      - name: Run Linter
+        run: pnpm run lint
+
+      - name: Build Project
+        run: pnpm run build
