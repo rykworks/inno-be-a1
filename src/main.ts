@@ -8,10 +8,9 @@ async function bootstrap() {
   });
 
   const config = new DocumentBuilder()
-    .setTitle('Inno-BE A1')
-    .setDescription('The BE-A1 API description')
+    .setTitle('BE A1 API')
+    .setDescription('API documentation')
     .setVersion('1.0')
-    .addTag('be-a1-project')
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);

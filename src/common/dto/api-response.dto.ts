@@ -1,49 +1,59 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 
+export type ApiResponseStatus = 'success' | 'error';
+
+export class ApiMeta {
+  @ApiProperty({ example: '2026-11-22T15:00:00.000Z' })
+  timestamp: string;
+}
+export class ApiErrorDetail {
+  @ApiProperty({ example: 'USER_ALREADY_EXISTS' })
+  code: string;
+
+  @ApiProperty({ example: 'email' })
+  field: string;
+
+  @ApiProperty({
+    example: "A user with email 'user@example.com' already exists",
+  })
+  message: string;
+}
 export class ApiResponse<T> {
-  @ApiProperty()
-  success: boolean;
+  @ApiProperty({ enum: ['success', 'error'], example: 'success' })
+  status: ApiResponseStatus;
+
+  @ApiProperty({ example: 200 })
+  code: number;
+
+  @ApiProperty({ example: 'Data retrieved successfully' })
+  message: string;
 
   @ApiProperty()
   data: T;
 
-  @ApiPropertyOptional()
-  message?: string;
+  @ApiProperty({ type: ApiMeta })
+  meta: ApiMeta;
 
-  @ApiPropertyOptional()
-  meta?: Record<string, unknown>;
-}
-
-export class ApiErrorDetail {
-  @ApiProperty()
-  code: string;
-
-  @ApiProperty()
-  field: string;
-
-  @ApiProperty()
-  message: string;
+  @ApiProperty({ type: [ApiErrorDetail], nullable: true, example: null })
+  errors: ApiErrorDetail[] | null;
 }
 
 export class ErrorResponse {
-  @ApiProperty()
-  success: false;
+  @ApiProperty({ example: 'error' })
+  status: 'error';
 
-  @ApiProperty()
-  statusCode: number;
+  @ApiProperty({ example: 400 })
+  code: number;
 
-  @ApiProperty()
+  @ApiProperty({ example: 'Validation error' })
   message: string;
 
-  @ApiPropertyOptional()
-  errorCode?: string;
+  @ApiProperty({ example: null, nullable: true })
+  data: null;
 
-  @ApiPropertyOptional({ type: ApiErrorDetail })
-  errors?: ApiErrorDetail[];
+  @ApiProperty({ type: ApiMeta })
+  meta: ApiMeta;
 
-  @ApiProperty()
-  timestamp: string;
-
-  @ApiProperty()
-  path: string;
+  @ApiProperty({ type: [ApiErrorDetail] })
+  errors: ApiErrorDetail[];
 }

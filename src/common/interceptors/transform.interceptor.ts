@@ -4,9 +4,11 @@ import {
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { Observable } from 'rxjs/internal/Observable';
 import { map } from 'rxjs/operators';
 import { ApiResponse } from '../dto/api-response.dto.js';
+import { createResponse } from '../utils/create-response.util.js';
 
 @Injectable()
 export class TransformInterceptor<T> implements NestInterceptor<
@@ -14,15 +16,22 @@ export class TransformInterceptor<T> implements NestInterceptor<
   ApiResponse<T>
 > {
   intercept(
-    _context: ExecutionContext,
+    context: ExecutionContext,
     next: CallHandler<T>,
   ): Observable<ApiResponse<T>> {
-    return next.handle().pipe(
-      map((data: T) => ({
-        success: true,
-        data,
-        timestamp: new Date().toISOString(),
-      })),
-    );
+    const response = context.switchToHttp().getResponse<Response>();
+    return next
+      .handle()
+      .pipe(
+        map((data: T) =>
+          createResponse(
+            'success',
+            response.statusCode,
+            'Success',
+            (data ?? null) as T,
+            null,
+          ),
+        ),
+      );
   }
 }

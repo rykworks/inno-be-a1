@@ -3,11 +3,10 @@ import { ApiErrorDetail } from '../dto/api-response.dto.js';
 
 export class APIException extends HttpException {
   constructor(
-    statusCode: number,
+    public readonly code: number,
     message: string,
-    public readonly errorCode?: string,
     public readonly errors: ApiErrorDetail[] = [],
   ) {
-    super({ statusCode, message, errorCode, errors }, statusCode);
+    super({ code, message, errors }, code);
   }
 }
